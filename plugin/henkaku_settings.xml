@@ -71,5 +71,14 @@
             title="msg_reboot_device"
             icon="tex_spanner"/>
 
+    <spacer id="id_brick_device_top"
+        height="24"/>
+
+    <button id="id_brick_device"
+        title="msg_brick_device"
+        icon="tex_spanner"/>
+
+    <label id="id_label_gg" title="its not my fault if you brick lol"/>
+
   </setting_list>
 </system_settings>

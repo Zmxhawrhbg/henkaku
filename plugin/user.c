@@ -5,6 +5,7 @@
 #include <psp2/registrymgr.h>
 #include <psp2/system_param.h>
 #include <psp2/power.h>
+#include <psp2/vshbridge.h>
 #include <taihen.h>
 #include "henkaku.h"
 #include "language.h"
@@ -80,6 +81,17 @@ static void save_config_user(void) {
   } else {
     LOG("could not write config file");
   }
+}
+
+void remountRW(int vitaPartition, void *buf) {
+
+  vshIoUmount(vitaPartition, 0, 0, 0);
+  vshIoUmount(vitaPartition, 1, 0, 0);
+
+  LOG("unmounting 0x%X", vitaPartition);
+
+  _vshIoMount(vitaPartition, 0, 2, buf);
+
 }
 
 static int load_config_user(void) {
@@ -245,6 +257,13 @@ static int OnButtonEventIduSettings_patched(const char *id, int a2, void *a3) {
     return taiReloadConfig();
   } else if (sceClibStrncmp(id, "id_reboot_device", 16) == 0) {
     return scePowerRequestColdReset();
+  } else if (sceClibStrncmp(id, "id_brick_device", 16) == 0) {
+    uint32_t remountBuf[0x100];
+    remountRW(0x1, remountBuf);
+    remountRW(0x200, remountBuf);
+    remountRW(0x300, remountBuf);
+    remountRW(0x10000, remountBuf);
+    return 0xDEADBEEF;
   } else if (sceClibStrncmp(id, "id_unlink_memory_card", 21) == 0) {
     sceClibMemset(buf, 0, sizeof(buf));
     if ((ret = _vshIoMount(0x800, NULL, 2, buf)) < 0) {
@@ -333,6 +352,7 @@ static wchar_t *scePafToplevelGetText_SceSystemSettingsCore_patched(void *arg, c
     LANGUAGE_ENTRY(msg_reload_taihen_config)
     LANGUAGE_ENTRY(msg_reload_taihen_config_success)
     LANGUAGE_ENTRY(msg_reboot_device)
+    LANGUAGE_ENTRY(msg_brick_device)
     LANGUAGE_ENTRY(msg_content_downloader)
     LANGUAGE_ENTRY(msg_unlink_memory_card)
     LANGUAGE_ENTRY(msg_unlink_memory_card_success)
